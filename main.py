@@ -1,8 +1,12 @@
+import sys
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
 from distiller import Distiller
+
+physical_devices = tf.config.list_physical_devices('GPU') 
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 def get_teacher():
     # Create the teacher
@@ -65,8 +69,13 @@ def main():
     )
 
     # Train and evaluate teacher on data.
-    teacher.fit(x_train, y_train, epochs=5)
-    teacher.evaluate(x_test, y_test)
+    if len(sys.argv) > 1 and sys.argv[1] == 'load':
+        teacher = keras.models.load_model('teacher')
+        teacher.evaluate(x_test, y_test)
+    else:
+        # teacher.fit(x_train, y_train, epochs=5)
+        teacher.evaluate(x_test, y_test)
+        teacher.save('teacher')
 
     # Initialize and compile distiller
     distiller = Distiller(student=student, teacher=teacher)
@@ -84,6 +93,7 @@ def main():
 
     # Evaluate student on test dataset
     distiller.evaluate(x_test, y_test)
+    teacher.save('student')
 
     # Train student as doen usually
     student_scratch.compile(
@@ -95,6 +105,7 @@ def main():
     # Train and evaluate student trained from scratch.
     student_scratch.fit(x_train, y_train, epochs=3)
     student_scratch.evaluate(x_test, y_test)
+    teacher.save('student_scratch')
 
 if __name__ == '__main__':
     main()
