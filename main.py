@@ -3,10 +3,27 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
+import tensorflow_model_optimization as tfmot
+import tempfile
+
 from distiller import Distiller
 
-physical_devices = tf.config.list_physical_devices('GPU') 
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+#physical_devices = tf.config.list_physical_devices('GPU') 
+#tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+def get_mnist_model():
+    # Define the model architecture.
+    model = keras.Sequential([
+        keras.layers.InputLayer(input_shape=(28, 28)),
+        keras.layers.Reshape(target_shape=(28, 28, 1)),
+        keras.layers.Conv2D(filters=12, kernel_size=(3, 3), activation='relu'),
+        keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        keras.layers.Flatten(),
+        keras.layers.Dense(10)
+    ])
+    
+    return model
 
 def get_teacher():
     # Create the teacher
@@ -42,6 +59,50 @@ def get_student():
 
     return student
 
+# https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras
+def prune(model, x_train, y_train, x_test, y_test, epochs=2, batch_size=128, validation_split=0.1):
+    prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
+
+    # Compute end step to finish pruning after 2 epochs.
+    num_images = x_train.shape[0] # * (1 - validation_split)
+    end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
+
+    # Define model for pruning.
+    pruning_params = {
+        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(initial_sparsity=0.50,
+                                                                final_sparsity=0.80,
+                                                                begin_step=0,
+                                                                end_step=end_step)
+    }
+
+    model_for_pruning = prune_low_magnitude(model, **pruning_params)
+
+    # `prune_low_magnitude` requires a recompile.
+    model_for_pruning.compile(optimizer='adam',
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                metrics=['accuracy'])
+
+    model_for_pruning.summary()
+    logdir = tempfile.mkdtemp()
+
+    callbacks = [
+        tfmot.sparsity.keras.UpdatePruningStep(),
+        tfmot.sparsity.keras.PruningSummaries(log_dir=logdir),
+    ]
+
+    model_for_pruning.fit(x_train, y_train,
+                    batch_size=batch_size, epochs=epochs, validation_split=0,
+                    callbacks=callbacks)
+    
+    _, model_for_pruning_accuracy = model_for_pruning.evaluate(
+   x_test, y_test, verbose=0)
+
+    print('Pruned test accuracy:', model_for_pruning_accuracy)
+    return model_for_pruning
+
+def compression_result():
+    return
+
 
 def main():
     teacher = get_teacher()
@@ -73,7 +134,7 @@ def main():
         teacher = keras.models.load_model('teacher')
         teacher.evaluate(x_test, y_test)
     else:
-        # teacher.fit(x_train, y_train, epochs=5)
+        teacher.fit(x_train, y_train, epochs=5)
         teacher.evaluate(x_test, y_test)
         teacher.save('teacher')
 
@@ -106,6 +167,8 @@ def main():
     student_scratch.fit(x_train, y_train, epochs=3)
     student_scratch.evaluate(x_test, y_test)
     teacher.save('student_scratch')
+
+    pruned_teacher = prune(teacher, x_train, y_train, x_test, y_test)
 
 if __name__ == '__main__':
     main()
