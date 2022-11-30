@@ -5,9 +5,26 @@ from tensorflow.keras import layers
 import numpy as np
 from cifar import Distiller
 from keras.utils.vis_utils import plot_model
+import tensorflow_model_optimization as tfmot
+import tempfile
+from distiller import Distiller
 
-physical_devices = tf.config.list_physical_devices('GPU') 
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+#physical_devices = tf.config.list_physical_devices('GPU') 
+#tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+def get_mnist_model():
+    # Define the model architecture.
+    model = keras.Sequential([
+        keras.layers.InputLayer(input_shape=(28, 28)),
+        keras.layers.Reshape(target_shape=(28, 28, 1)),
+        keras.layers.Conv2D(filters=12, kernel_size=(3, 3), activation='relu'),
+        keras.layers.MaxPooling2D(pool_size=(2, 2)),
+        keras.layers.Flatten(),
+        keras.layers.Dense(10)
+    ])
+    
+    return model
 
 def get_teacher():
     # Create the teacher
@@ -44,6 +61,85 @@ def get_student():
     plot_model(student, to_file='small_network.png', show_layer_names=False, show_shapes=True)
     student.summary()
     return student
+
+# https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras
+def prune(model, x_train, y_train, x_test, y_test, epochs=2, batch_size=128, validation_split=0.1):
+    prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
+
+    # Compute end step to finish pruning after 2 epochs.
+    num_images = x_train.shape[0] # * (1 - validation_split)
+    end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
+
+    # Define model for pruning.
+    pruning_params = {
+        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(initial_sparsity=0.50,
+                                                                final_sparsity=0.80,
+                                                                begin_step=0,
+                                                                end_step=end_step)
+    }
+
+    model_for_pruning = prune_low_magnitude(model, **pruning_params)
+
+    # `prune_low_magnitude` requires a recompile.
+    model_for_pruning.compile(optimizer='adam',
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                metrics=['accuracy'])
+
+    model_for_pruning.summary()
+    logdir = tempfile.mkdtemp()
+
+    callbacks = [
+        tfmot.sparsity.keras.UpdatePruningStep(),
+        tfmot.sparsity.keras.PruningSummaries(log_dir=logdir),
+    ]
+
+    model_for_pruning.fit(x_train, y_train,
+                    batch_size=batch_size, epochs=epochs, validation_split=0,
+                    callbacks=callbacks)
+    
+    _, model_for_pruning_accuracy = model_for_pruning.evaluate(
+   x_test, y_test, verbose=0)
+
+    print('Pruned test accuracy:', model_for_pruning_accuracy)
+    return model_for_pruning
+
+def get_gzipped_model_size(file):
+  # Returns size of gzipped model, in bytes.
+  import os
+  import zipfile
+
+  _, zipped_file = tempfile.mkstemp('.zip')
+  with zipfile.ZipFile(zipped_file, 'w', compression=zipfile.ZIP_DEFLATED) as f:
+    f.write(file)
+
+  return os.path.getsize(zipped_file)
+
+def compression_result(model_before_optimization, model_optimized):
+    # calculate MB
+    model_for_export = tfmot.sparsity.keras.strip_pruning(model_optimized)
+
+    _, optimized_keras_file = tempfile.mkstemp('.h5')
+    _, baseline_keras_file = tempfile.mkstemp('.h5')
+    tf.keras.models.save_model(model_for_export, optimized_keras_file, include_optimizer=False)
+    tf.keras.models.save_model(model_before_optimization, baseline_keras_file, include_optimizer=False)
+
+    converter = tf.lite.TFLiteConverter.from_keras_model(model_for_export)
+    pruned_tflite_model = converter.convert()
+
+    _, pruned_tflite_file = tempfile.mkstemp('.tflite')
+
+    with open(pruned_tflite_file, 'wb') as f:
+        f.write(pruned_tflite_model)
+
+    print("---- MB optimization ----")
+    print("Size of gzipped baseline Keras model: %.2f KB" % (get_gzipped_model_size(baseline_keras_file)* 0.001))
+    print("Size of gzipped optimized Keras model: %.2f KB" % (get_gzipped_model_size(optimized_keras_file)* 0.001))
+
+    # calculate parameter difference
+    print("---- parameter optimization ----")
+    print("Baseline model parameters: %.0f" % model_before_optimization.count_params())
+    print("Optimized model parameters: %.0f" % model_optimized.count_params())
+    return
 
 
 def main():
@@ -109,6 +205,8 @@ def main():
     scratch.fit(x_train, y_train, epochs=5)
     scratch.evaluate(x_test, y_test)
     scratch.save('scratch')
+
+    compression_result(teacher, student)
 
 if __name__ == '__main__':
     main()
