@@ -1,10 +1,8 @@
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
-import numpy as np
 
 #https://keras.io/examples/vision/knowledge_distillation/
- 
+I = 0 
 class Distiller(keras.Model):
     def __init__(self, student, teacher):
         super(Distiller, self).__init__()
@@ -61,7 +59,7 @@ class Distiller(keras.Model):
                     tf.nn.softmax(teacher_predictions / self.temperature, axis=1),
                     tf.nn.softmax(student_predictions / self.temperature, axis=1),
                 )
-                * self.temperature**2
+                # * self.temperature**2
             )
 
             loss = self.alpha * student_loss + (1 - self.alpha) * distillation_loss
@@ -79,7 +77,7 @@ class Distiller(keras.Model):
         # Return a dict of performance
         results = {m.name: m.result() for m in self.metrics}
         results.update(
-            {"student_loss": student_loss, "distillation_loss": distillation_loss}
+            {"distillation_loss": distillation_loss, "loss": student_loss}
         )
         return results
 
@@ -98,5 +96,5 @@ class Distiller(keras.Model):
 
         # Return a dict of performance
         results = {m.name: m.result() for m in self.metrics}
-        results.update({"student_loss": student_loss})
+        results.update({"loss": student_loss})
         return results

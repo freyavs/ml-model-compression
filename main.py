@@ -3,7 +3,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import numpy as np
-from distiller import Distiller
+from cifar import Distiller
+from keras.utils.vis_utils import plot_model
 
 physical_devices = tf.config.list_physical_devices('GPU') 
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
@@ -22,7 +23,8 @@ def get_teacher():
         ],
         name="teacher",
     )
-
+    plot_model(teacher, to_file='teacher_network.png', show_layer_names=False, show_shapes=True)
+    teacher.summary()
     return teacher
 
 def get_student():
@@ -39,7 +41,8 @@ def get_student():
         ],
         name="student",
     )
-
+    plot_model(student, to_file='small_network.png', show_layer_names=False, show_shapes=True)
+    student.summary()
     return student
 
 
@@ -48,7 +51,7 @@ def main():
     student = get_student()
 
     # Clone student for later comparison
-    student_scratch = keras.models.clone_model(student)
+    scratch = keras.models.clone_model(student)
 
     # Prepare the train and test dataset.
     batch_size = 64
@@ -73,7 +76,7 @@ def main():
         teacher = keras.models.load_model('teacher')
         teacher.evaluate(x_test, y_test)
     else:
-        # teacher.fit(x_train, y_train, epochs=5)
+        teacher.fit(x_train, y_train, epochs=5)
         teacher.evaluate(x_test, y_test)
         teacher.save('teacher')
 
@@ -84,28 +87,28 @@ def main():
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
         student_loss_fn=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         distillation_loss_fn=keras.losses.KLDivergence(),
-        alpha=0.1,
-        temperature=10,
+        alpha=0.3,
+        temperature=7,
     )
 
     # Distill teacher to student
-    distiller.fit(x_train, y_train, epochs=3)
+    distiller.fit(x_train, y_train, epochs=5)
 
     # Evaluate student on test dataset
     distiller.evaluate(x_test, y_test)
-    teacher.save('student')
+    distiller.student.save('student')
 
     # Train student as doen usually
-    student_scratch.compile(
+    scratch.compile(
         optimizer=keras.optimizers.Adam(),
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
     )
 
     # Train and evaluate student trained from scratch.
-    student_scratch.fit(x_train, y_train, epochs=3)
-    student_scratch.evaluate(x_test, y_test)
-    teacher.save('student_scratch')
+    scratch.fit(x_train, y_train, epochs=5)
+    scratch.evaluate(x_test, y_test)
+    scratch.save('scratch')
 
 if __name__ == '__main__':
     main()
