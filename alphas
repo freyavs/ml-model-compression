@@ -1,4 +1,0 @@
-python cifar.py load 0
-python cifar.py load 5
-python cifar.py load 10
-python cifar.py load 15
