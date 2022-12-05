@@ -22,9 +22,11 @@ def prune(model, x_train, y_train, x_test, y_test, prune_epochs=2, epochs=3, bat
     model_for_pruning = prune_low_magnitude(model, **pruning_params)
 
     # `prune_low_magnitude` requires a recompile.
-    model_for_pruning.compile(optimizer='adam',
+    model_for_pruning.compile(
+                optimizer='adam',
                 loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                metrics=['accuracy'])
+                metrics=['accuracy']
+    )
 
     model_for_pruning.summary()
     logdir = tempfile.mkdtemp()
@@ -34,12 +36,14 @@ def prune(model, x_train, y_train, x_test, y_test, prune_epochs=2, epochs=3, bat
         tfmot.sparsity.keras.PruningSummaries(log_dir=logdir),
     ]
 
-    model_for_pruning.fit(x_train, y_train,
-                    batch_size=batch_size, epochs=epochs, validation_split=validation_split,
-                    callbacks=callbacks)
+    model_for_pruning.fit(
+                x_train, y_train,
+                batch_size=batch_size, epochs=epochs, 
+                validation_split=validation_split,
+                callbacks=callbacks
+    )
     
-    _, model_for_pruning_accuracy = model_for_pruning.evaluate(
-   x_test, y_test, verbose=0)
+    _, model_for_pruning_accuracy = model_for_pruning.evaluate(x_test, y_test, verbose=0)
     print('Pruned test accuracy:', model_for_pruning_accuracy)
 
     return model_for_pruning

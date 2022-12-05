@@ -35,7 +35,7 @@ def cifar10():
     return teacher, student, x_train, x_test, y_train, y_test
 
 
-def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = False):
+def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = False, temperature=7, alpha=0.3, save_accuracy=lambda f,a: (f,a)):
     if data == "mnist":
         teacher, student, x_train, x_test, y_train, y_test = mnist() 
     elif data == "cifar10":
@@ -60,6 +60,7 @@ def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = Fals
         _, teacher_accuracy = teacher.evaluate(x_test, y_test, verbose=0)
         teacher.save(f'output/teacher-{data}')
 
+    save_accuracy('teacher', teacher_accuracy)
     print('Teacher test accuracy:', teacher_accuracy)
 
     if prune_before:
@@ -76,14 +77,16 @@ def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = Fals
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
         student_loss_fn=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         distillation_loss_fn=keras.losses.KLDivergence(),
-        alpha=0.3,
-        temperature=7,
+        alpha=alpha,
+        temperature=temperature,
     )
 
     distiller.fit(x_train, y_train, epochs=epochs)
 
-    result = distiller.evaluate(x_test, y_test, verbose=0)
-    print('Student test accuracy:', result)
+    student_accuracy = distiller.evaluate(x_test, y_test, verbose=0)
+    save_accuracy('student', student_accuracy)
+    print('Student test accuracy:', student_accuracy)
+
     distiller.student.save(f'output/student-{data}')
 
     if prune_after:
@@ -93,23 +96,19 @@ def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = Fals
         compression_result(student, new_student)
         student = new_student
 
+    print("\n--- EVALUATING SCRATCH ---\n")
     scratch.compile(
         optimizer=keras.optimizers.Adam(),
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
     )
 
-    print("\n--- EVALUATING SCRATCH ---\n")
     scratch.fit(x_train, y_train, epochs=epochs)
+
     _, scratch_accuracy = scratch.evaluate(x_test, y_test, verbose=0)
+    save_accuracy('scratch', scratch_accuracy)
     print('Scratch test accuracy:', scratch_accuracy)
+
     scratch.save(f'output/scratch-{data}')
 
     return teacher, student, scratch
-
-if __name__ == '__main__':
-    #physical_devices = tf.config.list_physical_devices('GPU') 
-    #tf.config.experimental.set_memory_growth(physical_devices[0], True)
-    teacher, student, scratch = kd_loop("mnist", epochs=3, prune_before=True)
-    compression_result(teacher, student)
-    compression_result(student, scratch)
