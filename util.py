@@ -10,14 +10,15 @@ def write_accuracy_to_file(file: str, accuracy: float):
 
 def get_accuracy_saver(teacher_file: str, student_file: str, scratch_file: str) -> Callable:
     def save_accuracy(who: str, accuracy: float) -> None:
-        if who == 'teacher':
-            write_accuracy_to_file(teacher_file, accuracy)
-        if who == 'student':
-            write_accuracy_to_file(student_file, accuracy)
-        if who == 'scratch':
-            write_accuracy_to_file(scratch_file, accuracy)
-        else:
-            raise ValueError(f"Can't save accuracy for {who}")
+        match who:
+            case 'teacher':
+                write_accuracy_to_file(teacher_file, accuracy)
+            case 'student':
+                write_accuracy_to_file(student_file, accuracy)
+            case 'scratch':
+                write_accuracy_to_file(scratch_file, accuracy)
+            case _:
+                raise ValueError(f"Can't save accuracy for {who}")
 
     return save_accuracy
 
