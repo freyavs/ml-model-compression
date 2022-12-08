@@ -56,8 +56,8 @@ def alpha_influence(teacher_file: str, student_file: str, scratch_file: str):
 
     for alpha in alphas:
         kd_loop_student(dataset, teacher, epochs=3, temperature=temperature, alpha=alpha, save_accuracy=save_accuracy)
-
-if __name__ == '__main__':
+    
+def main():
     # physical_devices = tf.config.list_physical_devices('GPU') 
     # tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
@@ -86,8 +86,8 @@ if __name__ == '__main__':
     temperature_influence(*filenames('temperature_influence'))
     alpha_influence(*filenames('alpha_influence'))
 
+if __name__ == '__main__':
+    main()
     
-
-
     # experiment_1('teacher_file1.txt', 'student_file1.txt', 'scratch_file1.txt')
     # experiment_2('teacher_file2.txt', 'student_file2.txt', 'scratch_file2.txt')

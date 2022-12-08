@@ -64,7 +64,7 @@ def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = Fals
 
     if prune_before:
         print("\n--- PRUNING & RE-EVALUATING TEACHER ---\n")
-        new_teacher = teacher.clone_model()
+        new_teacher = keras.models.clone_model(teacher)
         new_teacher = prune(new_teacher, x_train, y_train, x_test, y_test, epochs=epochs)
         compression_result(teacher, new_teacher)
         teacher = new_teacher
@@ -88,7 +88,7 @@ def kd_loop(data = "mnist", epochs = 1, prune_before = False, prune_after = Fals
 
     if prune_after:
         print("\n--- PRUNING & RE-EVALUATING STUDENT ---\n")
-        new_student = student.clone_model()
+        new_student = keras.models.clone_model(student)
         new_student = prune(new_student, x_train, y_train, x_test, y_test, epochs=epochs)
         compression_result(student, new_student)
         student = new_student

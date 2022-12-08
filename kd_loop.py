@@ -29,28 +29,27 @@ def cifar10():
     return x_train, x_test, y_train, y_test
 
 def get_data(data):
-    match data:
-        case 'mnist':
-            x_train, x_test, y_train, y_test = mnist() 
-        case 'cifar10':
-            x_train, x_test, y_train, y_test = cifar10() 
-        case _:
-            raise ValueError(f'{data} is not a valid dataset')
+    if data == 'mnist':
+        x_train, x_test, y_train, y_test = mnist() 
+    elif data == 'cifar10':
+        x_train, x_test, y_train, y_test = cifar10() 
+    else:
+        raise ValueError(f'{data} is not a valid dataset')
 
     return x_train, x_test, y_train, y_test
 
 def get_model_and_data(model, data):
-    match (data, model):
-        case ('mnist', 'teacher'):
-            model = get_teacher_mnist()
-        case ('mnist', 'student' | 'scratch'):
-            model = get_student_mnist()
-        case ('cifar10', 'teacher'):
-            model = get_teacher_cifar10()
-        case ('cifar10', 'student' | 'scratch'):
-            model = get_student_smaller_cifar10()
-        case _:
-            raise ValueError(f'{data}, {model} is no valid model configuration')
+    x = (data, model)
+    if x == ('mnist', 'teacher'):
+         model = get_teacher_mnist()
+    elif x == ('mnist','scratch') or x == ('mnist','student'):
+        model = get_student_mnist()
+    elif x == ('cifar10', 'teacher'):
+        model = get_teacher_cifar10()
+    elif x == ('cifar10', 'student') or x == ('cifar10', 'scratch'):
+        model = get_student_smaller_cifar10()
+    else:
+        raise ValueError(f'{data}, {model} is no valid model configuration')
 
     return model, *get_data(data)
 
