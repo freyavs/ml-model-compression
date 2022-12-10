@@ -8,32 +8,30 @@ def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher = kd_loop_teacher(data, epochs=5, save_accuracy=save_accuracy)
-        kd_loop_student(data, epochs=3, teacher=teacher, save_accuracy=save_accuracy)
-        kd_loop_scratch(data, epochs=3, save_accuracy=save_accuracy)
+        teacher = kd_loop_teacher(data, epochs=5, save=save_accuracy)
+        kd_loop_student(data, epochs=3, teacher=teacher, save=save_accuracy)
+        kd_loop_scratch(data, epochs=3, save=save_accuracy)
 
 def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save_accuracy=save_accuracy)
-        kd_loop_student(data, epochs=3, teacher=teacher, save_accuracy=save_accuracy)
-        kd_loop_scratch(data, epochs=3, save_accuracy=save_accuracy)
+        teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save=save_accuracy)
+        kd_loop_student(data, epochs=3, teacher=teacher, save=save_accuracy)
 
 def student_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
-    teacher = kd_loop_teacher(data, epochs=5, save_accuracy=save_accuracy)
+    teacher = kd_loop_teacher(data, epochs=5, save=save_accuracy)
     for _ in range(1):
-        kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save_accuracy=save_accuracy)
+        kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save=save_accuracy)
 
 def teacher_and_student_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save_accuracy=save_accuracy)
-        kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save_accuracy=save_accuracy)
-        kd_loop_scratch(data, epochs=3, save_accuracy=save_accuracy)
+        teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save=save_accuracy)
+        kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save=save_accuracy)
 
 def temperature_influence(teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
@@ -44,7 +42,7 @@ def temperature_influence(teacher_file: str, student_file: str, scratch_file: st
     alpha = 0.3
 
     for T in temperatures:
-        kd_loop_student(dataset, teacher, epochs=3, temperature=T, alpha=alpha, save_accuracy=save_accuracy)
+        kd_loop_student(dataset, teacher, epochs=3, temperature=T, alpha=alpha, save=save_accuracy)
 
 def alpha_influence(teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
@@ -55,7 +53,7 @@ def alpha_influence(teacher_file: str, student_file: str, scratch_file: str):
     alphas = [i/10 for i in range(11)]
 
     for alpha in alphas:
-        kd_loop_student(dataset, teacher, epochs=3, temperature=temperature, alpha=alpha, save_accuracy=save_accuracy)
+        kd_loop_student(dataset, teacher, epochs=3, temperature=temperature, alpha=alpha, save=save_accuracy)
     
 def main():
     # physical_devices = tf.config.list_physical_devices('GPU') 
