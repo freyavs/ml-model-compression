@@ -83,7 +83,7 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save_accuracy=l
 
     if apply_pruning:
         print("\n--- PRUNING & RE-EVALUATING TEACHER ---\n")
-        new_teacher = teacher.clone_model()
+        new_teacher = keras.models.clone_model(teacher)
         new_teacher = prune(new_teacher, x_train, y_train, x_test, y_test, epochs=epochs)
         compression_result(teacher, new_teacher)
         teacher = new_teacher
@@ -109,7 +109,7 @@ def kd_loop_student(data="mnist", teacher=None, epochs=1, apply_pruning=False, t
 
     distiller.fit(x_train, y_train, epochs=epochs)
 
-    student_accuracy = distiller.evaluate(x_test, y_test, verbose=0)
+    student_accuracy, _ = distiller.evaluate(x_test, y_test, verbose=0)
     save_accuracy('student', student_accuracy)
     print('Student test accuracy:', student_accuracy)
 
@@ -117,7 +117,7 @@ def kd_loop_student(data="mnist", teacher=None, epochs=1, apply_pruning=False, t
 
     if apply_pruning:
         print("\n--- PRUNING & RE-EVALUATING STUDENT ---\n")
-        new_student = student.clone_model()
+        new_student = keras.models.clone_model(student)
         new_student = prune(new_student, x_train, y_train, x_test, y_test, epochs=epochs)
         compression_result(student, new_student)
         student = new_student

@@ -7,7 +7,7 @@ from pathlib import Path
 def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
-    for _ in range(5):
+    for _ in range(1):
         teacher = kd_loop_teacher(data, epochs=5, save_accuracy=save_accuracy)
         kd_loop_student(data, epochs=3, teacher=teacher, save_accuracy=save_accuracy)
         kd_loop_scratch(data, epochs=3, save_accuracy=save_accuracy)
@@ -15,7 +15,7 @@ def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
 def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
-    for _ in range(5):
+    for _ in range(1):
         teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save_accuracy=save_accuracy)
         kd_loop_student(data, epochs=3, teacher=teacher, save_accuracy=save_accuracy)
         kd_loop_scratch(data, epochs=3, save_accuracy=save_accuracy)
@@ -24,13 +24,13 @@ def student_pruned(data:str , teacher_file: str, student_file: str, scratch_file
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     teacher = kd_loop_teacher(data, epochs=5, save_accuracy=save_accuracy)
-    for _ in range(5):
+    for _ in range(1):
         kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save_accuracy=save_accuracy)
 
 def teacher_and_student_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
-    for _ in range(5):
+    for _ in range(1):
         teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save_accuracy=save_accuracy)
         kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save_accuracy=save_accuracy)
         kd_loop_scratch(data, epochs=3, save_accuracy=save_accuracy)
