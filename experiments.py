@@ -8,9 +8,9 @@ def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher = kd_loop_teacher(data, epochs=5, save=save_accuracy)
-        kd_loop_student(data, epochs=3, teacher=teacher, save=save_accuracy)
-        kd_loop_scratch(data, epochs=3, save=save_accuracy)
+        teacher = kd_loop_teacher(data, epochs=20, save=save_accuracy)
+        kd_loop_student(data, epochs=15, teacher=teacher, save=save_accuracy)
+        kd_loop_scratch(data, epochs=15, save=save_accuracy)
 
 def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
@@ -69,6 +69,7 @@ def main():
         scratch = f'{OUTPUT_DIR}/{dataset}_{name}_scratch' if dataset else f'{OUTPUT_DIR}/{name}_scratch'
         return (teacher, student, scratch) 
 
+    normal('cifar100', *filenames('normal', 'cifar100')) 
     normal('mnist', *filenames('normal', 'mnist')) 
     normal('cifar10', *filenames('normal', 'cifar10')) 
 

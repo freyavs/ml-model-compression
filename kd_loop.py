@@ -4,7 +4,7 @@ import numpy as np
 from distiller import Distiller
 from result_metrics import compression_result
 from networks import get_student_mnist, get_teacher_mnist
-from networks import get_student_cifar10, get_student_smaller_cifar10, get_teacher_cifar10
+from networks import get_student_cifar10, get_student_smaller_cifar10, get_teacher_cifar10, get_teacher_cifar100, get_student_smaller_cifar100
 from prune import prune
 
 def mnist():
@@ -28,11 +28,24 @@ def cifar10():
 
     return x_train, x_test, y_train, y_test
 
+# https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-build-a-convnet-for-cifar-10-and-cifar-100-classification-with-keras.md
+def cifar100():
+    (x_train, y_train), (x_test, y_test) = keras.datasets.cifar100.load_data()
+
+    x_train = x_train.astype('float32') / 255.0
+    x_train = np.reshape(x_train, (-1, 32, 32, 3))
+    x_test = x_test.astype('float32') / 255.0
+    x_test = np.reshape(x_test, (-1, 32, 32,3))
+
+    return x_train, x_test, y_train, y_test
+
 def get_data(data):
     if data == 'mnist':
         x_train, x_test, y_train, y_test = mnist() 
     elif data == 'cifar10':
         x_train, x_test, y_train, y_test = cifar10() 
+    elif data == 'cifar100':
+        x_train, x_test, y_train, y_test = cifar100() 
     else:
         raise ValueError(f'{data} is not a valid dataset')
 
@@ -46,8 +59,12 @@ def get_model_and_data(model, data):
         model = get_student_mnist()
     elif x == ('cifar10', 'teacher'):
         model = get_teacher_cifar10()
+    elif x == ('cifar100', 'teacher'):
+        model = get_teacher_cifar100()
     elif x == ('cifar10', 'student') or x == ('cifar10', 'scratch'):
         model = get_student_smaller_cifar10()
+    elif x == ('cifar100', 'student') or x == ('cifar100', 'scratch'):
+        model = get_student_smaller_cifar100()
     else:
         raise ValueError(f'{data}, {model} is no valid model configuration')
 

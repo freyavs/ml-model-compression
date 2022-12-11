@@ -8,6 +8,47 @@ from tensorflow.keras import layers
 
 IMAGE_DIR = "images"
 
+def get_teacher_cifar100(summarize = False):
+    teacher = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=(32, 32, 3)),
+            
+            tf.keras.layers.Conv2D(256, (3, 3), strides=(2, 2), padding="same"),
+            tf.keras.layers.LeakyReLU(alpha=0.2),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding="same"),
+            tf.keras.layers.Conv2D(512, (3, 3), strides=(2, 2), padding="same"),
+            tf.keras.layers.LeakyReLU(alpha=0.2),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding="same"),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(100),
+        ],
+        name="teacher",
+    )
+    if summarize:
+        plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
+        teacher.summary()
+    return teacher
+
+def get_student_smaller_cifar100(summarize = False):
+    student = tf.keras.Sequential(
+        [
+            tf.keras.Input(shape=(32, 32, 3)),
+            tf.keras.layers.Conv2D(2, (3, 3), strides=(2, 2), padding="same"),
+            tf.keras.layers.LeakyReLU(alpha=0.2),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding="same"),
+            tf.keras.layers.Conv2D(8, (3, 3), strides=(2, 2), padding="same"),
+            tf.keras.layers.LeakyReLU(alpha=0.2),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(1, 1), padding="same"),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(100),
+        ],
+        name="smaller_student",
+    )
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
 def get_teacher_cifar10(summarize = False):
     teacher = tf.keras.Sequential(
         [
