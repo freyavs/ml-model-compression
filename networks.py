@@ -9,59 +9,63 @@ from tensorflow.keras import layers
 IMAGE_DIR = "images"
 
 
-# 46% accuracy
+# 63% accuracy
 def get_teacher_cifar100(summarize = False):
-    cifar100_model = tf.keras.Sequential()
-
-    cifar100_model.add(layers.Conv2D(filters = 64, kernel_size=(2, 2), input_shape=(32, 32, 3), activation='relu'))
-    cifar100_model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    cifar100_model.add(layers.BatchNormalization())
-    cifar100_model.add(layers.Conv2D(filters = 128, kernel_size=(2, 2), activation='relu'))
-    cifar100_model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    cifar100_model.add(layers.BatchNormalization())
-    cifar100_model.add(layers.Conv2D(filters = 256, kernel_size=(2, 2),activation='relu'))
-    cifar100_model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    cifar100_model.add(layers.BatchNormalization())
-
-    cifar100_model.add(layers.Flatten())
-
-    cifar100_model.add(layers.Dense(512, activation='relu'))
-    cifar100_model.add(layers.Dropout(0.2))
-    cifar100_model.add(layers.Dense(256, activation='relu'))
-    cifar100_model.add(layers.Dropout(0.2))
-    cifar100_model.add(layers.Dense(100, activation="softmax"))
+    model = tf.keras.Sequential()
+    model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(32, 32, 3)))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.MaxPool2D((2, 2)))
+    model.add(layers.Dropout(0.2))
+    model.add(layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.MaxPool2D((2, 2)))
+    model.add(layers.Dropout(0.3))
+    model.add(layers.Conv2D(256, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Conv2D(256, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.MaxPool2D((2, 2)))
+    model.add(layers.Dropout(0.4))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(256, activation='relu', kernel_initializer='he_uniform'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(100, activation='softmax'))
+    teacher = model
     
-
-    teacher = cifar100_model
+    teacher = model 
     if summarize:
         plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
         teacher.summary()
 
     return teacher
 
+# TODO: zelfde model als hierboven gebruiken maar kleiner? Of eventueel get_student_smaller_cifar10 gebruiken (heeft minder lagen)
+# vooral letten op dat er geen overfitting is na nog maar 5 epochs ofzo
 def get_student_smaller_cifar100(summarize = False):
-    cifar100_model = tf.keras.Sequential()
-
-    cifar100_model.add(layers.Conv2D(filters = 8, kernel_size=(2, 2), input_shape=(32, 32, 3), activation='relu'))
-    cifar100_model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    cifar100_model.add(layers.BatchNormalization())
-    cifar100_model.add(layers.Conv2D(filters = 16, kernel_size=(2, 2), activation='relu'))
-    cifar100_model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    cifar100_model.add(layers.BatchNormalization())
-    cifar100_model.add(layers.Conv2D(filters = 32, kernel_size=(2, 2),activation='relu'))
-    cifar100_model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    cifar100_model.add(layers.BatchNormalization())
-
-    cifar100_model.add(layers.Flatten())
-
-    cifar100_model.add(layers.Dense(256, activation='relu'))
-    cifar100_model.add(layers.Dropout(0.2))
-    cifar100_model.add(layers.Dense(128, activation='relu'))
-    cifar100_model.add(layers.Dropout(0.2))
-    cifar100_model.add(layers.Dense(100, activation="softmax"))
+    model = tf.keras.Sequential()
+    model.add(layers.Conv2D(filters = 8, kernel_size=(2, 2), input_shape=(32, 32, 3), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Conv2D(filters = 16, kernel_size=(2, 2), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Conv2D(filters = 32, kernel_size=(2, 2),activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    model.add(layers.BatchNormalization())
+    model.add(layers.Flatten())
+    model.add(layers.Dense(256, activation='relu'))
+    model.add(layers.Dropout(0.2))
+    model.add(layers.Dense(128, activation='relu'))
+    model.add(layers.Dropout(0.2))
+    model.add(layers.Dense(100, activation="softmax"))
     
 
-    student = cifar100_model
+    student = model
     if summarize:
         plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
         student.summary()
@@ -100,8 +104,29 @@ def get_teacher_cifar10(summarize = False):
         teacher.summary()
     return teacher
 
-# teacher= 85, scratch = 73, student = 73
+# teacher = 85, scratch = 67, student = 67 (beste optie)
 def get_student_smaller_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=8,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=16,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+# teacher= 85, scratch = 73, student = 73 (maar groter dan bovenste)
+def get_student_small_cifar10(summarize = False):
     model = tf.keras.Sequential()
     model.add(layers.Conv2D(8, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(32, 32, 3)))
     model.add(layers.BatchNormalization())
@@ -132,7 +157,7 @@ def get_student_smaller_cifar10(summarize = False):
         student.summary()
     return student
 
-# teacher= 85, scratch = 64.7, student = 63.4 
+# teacher= 85, scratch = 64.7, student = 63.4 (redelijk slecht, gaat snel overfitten)
 def get_student_cifar10(summarize = False):
     student = tf.keras.Sequential(
         [
