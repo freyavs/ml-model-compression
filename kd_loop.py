@@ -107,11 +107,14 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a
     
     return teacher
 
-def kd_loop_student(data="mnist", teacher=None, epochs=1, apply_pruning=False, temperature=7, alpha=0.3, save=lambda f,a: (f,a)):
+def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pruning=False, temperature=7, alpha=0.3, save=lambda f,a: (f,a)):
     if not teacher:
         raise ValueError("No teacher was provided")
 
-    student, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
+    if not student:
+        student, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
+    else:
+        student, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
 
     print("\n--- EVALUATING STUDENT ---\n")
     distiller = Distiller(student=student, teacher=teacher)
@@ -124,7 +127,7 @@ def kd_loop_student(data="mnist", teacher=None, epochs=1, apply_pruning=False, t
         temperature=temperature,
     )
 
-    distiller.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
+    history = distiller.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
 
     student_accuracy, _ = distiller.evaluate(x_test, y_test, verbose=0)
     save('student', student_accuracy)
@@ -139,10 +142,13 @@ def kd_loop_student(data="mnist", teacher=None, epochs=1, apply_pruning=False, t
         compression_result(student, new_student, 'student', save)
         student = new_student
 
-    return student
+    return student, history
 
-def kd_loop_scratch(data="mnist", epochs=1, save=lambda f,a: (f,a)):
-    scratch, x_train, x_test, y_train, y_test = get_model_and_data('scratch', data)
+def kd_loop_scratch(data="mnist", scratch=None, epochs=1, save=lambda f,a: (f,a)):
+    if not scratch:
+        scratch, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
+    else:
+        scratch, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
 
     print("\n--- EVALUATING SCRATCH ---\n")
     scratch.compile(

@@ -104,6 +104,146 @@ def get_teacher_cifar10(summarize = False):
         teacher.summary()
     return teacher
 
+def get_student_smaller_2_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=8,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=10,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+def get_student_smaller_3_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=8,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=8,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+def get_student_smaller_4_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=4,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=4,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+def get_student_smaller_5_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=2,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=2,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+def get_student_smaller_6_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=2,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=1,kernel_size=(4,4),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+def get_student_smaller_7_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=1,kernel_size=(8,8),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=1,kernel_size=(8,8),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
+def get_student_smaller_8_cifar10(summarize = False):
+    model= tf.keras.Sequential()
+    model.add(layers.Conv2D(filters=1,kernel_size=(8,8),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # batch normalisatie verbert het (zonder netwerk groter te maken), maar maakt het precies minder stabiel?
+    model.add(layers.MaxPool2D(pool_size=(2,2)))
+    model.add(layers.Dropout(0.25)) # Drop 25% of the units from the layer.
+    model.add(layers.Conv2D(filters=1,kernel_size=(8,8),input_shape=(32,32,3),activation='relu'))
+    model.add(layers.BatchNormalization()) # zie ^^ 
+    model.add(layers.MaxPool2D(pool_size=(4,4)))
+    model.add(layers.Dropout(0.25))
+    model.add(layers.Flatten())
+    model.add(layers.Dense(64,activation='relu'))
+    model.add(layers.Dense(10,activation='softmax'))
+    
+    student = model
+    if summarize:
+        plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
+        student.summary()
+    return student
+
 # teacher = 85, scratch = 67, student = 67 (beste optie)
 def get_student_smaller_cifar10(summarize = False):
     model= tf.keras.Sequential()
