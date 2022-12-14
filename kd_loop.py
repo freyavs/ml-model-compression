@@ -78,7 +78,7 @@ def kd_loop(data="mnist", teacher=None, epochs=1, prune_teacher=False, prune_stu
     return teacher, student, scratch
 
 
-def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a: (f,a)):
+def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a: (f,a), load_teacher=False):
     teacher, x_train, x_test, y_train, y_test = get_model_and_data('teacher', data)
 
     teacher.compile(
@@ -88,10 +88,10 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a
     )
 
     print("\n--- EVALUATING TEACHER ---\n")
-    if len(sys.argv) > 1 and sys.argv[1] == 'load':
+    if (len(sys.argv) > 1 and sys.argv[1] == 'load') or load_teacher:
         teacher = keras.models.load_model(f'output/teacher-{data}')
     else:
-        teacher.fit(x_train, y_train, epochs=epochs)
+        teacher.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
         teacher.save(f'output/teacher-{data}')
     _, teacher_accuracy = teacher.evaluate(x_test, y_test, verbose=0)
 
@@ -124,7 +124,7 @@ def kd_loop_student(data="mnist", teacher=None, epochs=1, apply_pruning=False, t
         temperature=temperature,
     )
 
-    distiller.fit(x_train, y_train, epochs=epochs)
+    distiller.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
 
     student_accuracy, _ = distiller.evaluate(x_test, y_test, verbose=0)
     save('student', student_accuracy)
@@ -151,7 +151,7 @@ def kd_loop_scratch(data="mnist", epochs=1, save=lambda f,a: (f,a)):
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
     )
 
-    scratch.fit(x_train, y_train, epochs=epochs)
+    scratch.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
 
     _, scratch_accuracy = scratch.evaluate(x_test, y_test, verbose=0)
     save('scratch', scratch_accuracy)
