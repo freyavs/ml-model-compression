@@ -6,6 +6,7 @@ from result_metrics import compression_result
 from networks import get_student_mnist, get_teacher_mnist
 from networks import get_student_cifar10, get_student_smaller_cifar10, get_teacher_cifar10, get_teacher_cifar100, get_student_smaller_cifar100
 from prune import prune
+from util import mean_accuracy
 
 def mnist():
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
@@ -90,8 +91,9 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a
     print("\n--- EVALUATING TEACHER ---\n")
     if (len(sys.argv) > 1 and sys.argv[1] == 'load') or load_teacher:
         teacher = keras.models.load_model(f'output/teacher-{data}')
+        history = None
     else:
-        teacher.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
+        history = teacher.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
         teacher.save(f'output/teacher-{data}')
     _, teacher_accuracy = teacher.evaluate(x_test, y_test, verbose=0)
 
@@ -105,16 +107,16 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a
         compression_result(teacher, new_teacher, 'teacher', save)
         teacher = new_teacher
     
-    return teacher
+    return teacher, history
 
-def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pruning=False, temperature=7, alpha=0.3, save=lambda f,a: (f,a)):
+def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pruning=False, temperature=4, alpha=0.9, save=lambda f,a: (f,a)):
     if not teacher:
         raise ValueError("No teacher was provided")
 
     if not student:
         student, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
     else:
-        student, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
+        _, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
 
     print("\n--- EVALUATING STUDENT ---\n")
     distiller = Distiller(student=student, teacher=teacher)
@@ -130,6 +132,7 @@ def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pr
     history = distiller.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
 
     student_accuracy, _ = distiller.evaluate(x_test, y_test, verbose=0)
+    student_accuracy = mean_accuracy(history)
     save('student', student_accuracy)
     print('Student test accuracy:', student_accuracy)
 
@@ -148,7 +151,7 @@ def kd_loop_scratch(data="mnist", scratch=None, epochs=1, save=lambda f,a: (f,a)
     if not scratch:
         scratch, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
     else:
-        scratch, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
+        _, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
 
     print("\n--- EVALUATING SCRATCH ---\n")
     scratch.compile(
@@ -157,9 +160,10 @@ def kd_loop_scratch(data="mnist", scratch=None, epochs=1, save=lambda f,a: (f,a)
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
     )
 
-    scratch.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
+    history = scratch.fit(x_train, y_train, epochs=epochs, validation_data=(x_test, y_test))
 
     _, scratch_accuracy = scratch.evaluate(x_test, y_test, verbose=0)
+    scratch_accuracy = mean_accuracy(history)
     save('scratch', scratch_accuracy)
     print('Scratch test accuracy:', scratch_accuracy)
 

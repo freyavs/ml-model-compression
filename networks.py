@@ -96,7 +96,7 @@ def get_teacher_cifar10(summarize = False):
     model.add(layers.Dense(128, activation='relu', kernel_initializer='he_uniform'))
     model.add(layers.BatchNormalization())
     model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(10, activation='softmax'))
+    model.add(layers.Dense(10))
     teacher = model
    
     if summarize:
@@ -115,8 +115,8 @@ def get_student_smaller_2_cifar10(summarize = False):
     model.add(layers.MaxPool2D(pool_size=(2,2)))
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
-    model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(64))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -136,7 +136,7 @@ def get_student_smaller_3_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -156,7 +156,7 @@ def get_student_smaller_4_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -176,7 +176,7 @@ def get_student_smaller_5_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -196,7 +196,7 @@ def get_student_smaller_6_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -216,7 +216,7 @@ def get_student_smaller_7_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -236,7 +236,7 @@ def get_student_smaller_8_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
@@ -257,7 +257,7 @@ def get_student_smaller_cifar10(summarize = False):
     model.add(layers.Dropout(0.25))
     model.add(layers.Flatten())
     model.add(layers.Dense(64,activation='relu'))
-    model.add(layers.Dense(10,activation='softmax'))
+    model.add(layers.Dense(10))
     
     student = model
     if summarize:
