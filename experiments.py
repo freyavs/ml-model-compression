@@ -19,11 +19,14 @@ def student_loss_graphic(data:str):
     _, history = kd_loop_student(data, epochs=30, teacher=teacher)
     df = pd.DataFrame(history.history)
     df = df.rename(columns={"loss": "train loss", "sparse_categorical_accuracy": "train accuracy", "val_loss": "test loss", "val_sparse_categorical_accuracy": "test accuracy"})
+    ax = df.plot()
+    ax.set_xlabel("epochs")
     df.plot().get_figure().savefig('student_loss.png')
 
 def big_to_small(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
     teacher, _ = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=False)
+    compression_result(teacher, name='teacher', save=save_accuracy)
 
     for s in cifar10_networks:
         student, _ = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
