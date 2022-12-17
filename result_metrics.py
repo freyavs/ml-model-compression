@@ -13,31 +13,29 @@ def get_gzipped_model_size(file):
 
   return os.path.getsize(zipped_file)
 
-def compression_result(model_before_optimization, model_optimized, name:str, save=lambda f,a: (f,a)):
+def compression_result(model, name:str, pruned = False):
     # calculate MB
-    model_for_export = tfmot.sparsity.keras.strip_pruning(model_optimized)
 
-    _, optimized_keras_file = tempfile.mkstemp('.h5')
-    _, baseline_keras_file = tempfile.mkstemp('.h5')
-    tf.keras.models.save_model(model_for_export, optimized_keras_file, include_optimizer=False)
-    tf.keras.models.save_model(model_before_optimization, baseline_keras_file, include_optimizer=False)
+    model_for_export = model
+    if pruned:
+      model_for_export = tfmot.sparsity.keras.strip_pruning(model)
+
+    _, keras_file = tempfile.mkstemp('.h5')
+    tf.keras.models.save_model(model_for_export, keras_file, include_optimizer=False)
 
     converter = tf.lite.TFLiteConverter.from_keras_model(model_for_export)
-    pruned_tflite_model = converter.convert()
+    tflite_model = converter.convert()
 
-    _, pruned_tflite_file = tempfile.mkstemp('.tflite')
+    _, tflite_file = tempfile.mkstemp('.tflite')
 
-    with open(pruned_tflite_file, 'wb') as f:
-        f.write(pruned_tflite_model)
+    with open(tflite_file, 'wb') as f:
+        f.write(tflite_model)
 
-    print("---- MB optimization ----")
-    print("Size of gzipped baseline Keras model: %.2f KB" % (get_gzipped_model_size(baseline_keras_file)* 0.001))
-    print("Size of gzipped optimized Keras model: %.2f KB" % (get_gzipped_model_size(optimized_keras_file)* 0.001))
+    print("---- Compression result ----")
+    print(f"Size of gzipped {name} model: {get_gzipped_model_size(keras_file)* 0.001}KB")
     #save(f"{name}_size", (get_gzipped_model_size(baseline_keras_file)* 0.001, get_gzipped_model_size(optimized_keras_file)* 0.001))
 
     # calculate parameter difference
-    print("---- parameter optimization ----")
-    print("Baseline model parameters: %.0f" % model_before_optimization.count_params())
-    print("Optimized model parameters: %.0f" % model_optimized.count_params())
+    print(f"Baseline model {name} parameters: {model.count_params()}")
     #save(f"{name}_parameters", (model_before_optimization.count_params(), model_optimized.count_params()))
     return
