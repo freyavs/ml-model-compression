@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import pandas as pd
 
 
 def write_to_file(f: str, text: str):
@@ -31,3 +32,7 @@ def get_accuracy_saver(teacher_file: str, student_file: str, scratch_file: str) 
 
     return save_accuracy
 
+def mean_accuracy(history):
+    df = pd.DataFrame(history.history)
+    mean_accuracy = df.tail(5)['val_sparse_categorical_accuracy'].mean()
+    return mean_accuracy
