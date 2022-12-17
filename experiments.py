@@ -72,8 +72,8 @@ def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     for _ in range(1):
         # TODO: voor grafiekjes is het interessanter om epochs hoger te zetten
         teacher = kd_loop_teacher(data, epochs=1, save=save_accuracy, load_teacher=True)
-        student = kd_loop_student(data, epochs=13, teacher=teacher, save=save_accuracy)
-        scratch = kd_loop_scratch(data, epochs=13, save=save_accuracy)
+        student = kd_loop_student(data, epochs=25, teacher=teacher, save=save_accuracy)
+        scratch = kd_loop_scratch(data, epochs=25, save=save_accuracy)
         compression_result(teacher,student, "teacher_file")
 
 def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
@@ -142,6 +142,9 @@ def main():
     normal('cifar10', *filenames('normal', 'cifar10')) 
     return
     normal('mnist', *filenames('normal', 'mnist')) 
+    normal('cifar100', *filenames('normal', 'cifar100')) 
+
+    big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
 
     teacher_pruned('mnist', *filenames('teacher_pruned', 'mnist')) 
     teacher_pruned('cifar10', *filenames('teacher_pruned', 'cifar10')) 
