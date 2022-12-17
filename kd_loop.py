@@ -3,8 +3,7 @@ from tensorflow import keras
 import numpy as np
 from distiller import Distiller
 from result_metrics import compression_result
-from networks import get_student_mnist, get_teacher_mnist
-from networks import get_student_cifar10, get_student_smaller_cifar10, get_teacher_cifar10, get_teacher_cifar100, get_student_smaller_cifar100
+from networks import *
 from prune import prune
 from util import mean_accuracy
 
@@ -63,9 +62,9 @@ def get_model_and_data(model, data):
     elif x == ('cifar100', 'teacher'):
         model = get_teacher_cifar100()
     elif x == ('cifar10', 'student') or x == ('cifar10', 'scratch'):
-        model = get_student_smaller_cifar10()
+        model = get_student_small_1_cifar10()
     elif x == ('cifar100', 'student') or x == ('cifar100', 'scratch'):
-        model = get_student_smaller_cifar100()
+        model = get_student_small_1_cifar10()
     else:
         raise ValueError(f'{data}, {model} is no valid model configuration')
 
@@ -109,7 +108,7 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a
     
     return teacher, history
 
-def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pruning=False, temperature=4, alpha=0.9, save=lambda f,a: (f,a)):
+def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pruning=False, temperature=4, alpha=0.1, save=lambda f,a: (f,a)):
     if not teacher:
         raise ValueError("No teacher was provided")
 

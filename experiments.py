@@ -23,48 +23,12 @@ def student_loss_graphic(data:str):
 
 def big_to_small(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
-    teacher, history = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=False)
+    teacher, _ = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=False)
 
-    s = get_student_smaller_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_2_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_3_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_4_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_5_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_6_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_7_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
-    s = get_student_smaller_8_cifar10()
-    _, history = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
-    kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
-    # pd.DataFrame(history.history).plot()
-
+    for s in cifar10_networks:
+        student, _ = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
+        compression_result(student, name='student', save=save_accuracy)
+        kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
 
 def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
@@ -134,8 +98,8 @@ def main():
         return (teacher, student, scratch) 
 
     # teacher_loss_graphic('cifar10')
-    student_loss_graphic('cifar10')
-    # big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
+    # student_loss_graphic('cifar10')
+    big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
     return
 
     # normal('cifar100', *filenames('normal', 'cifar100')) 

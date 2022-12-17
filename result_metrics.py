@@ -13,7 +13,7 @@ def get_gzipped_model_size(file):
 
   return os.path.getsize(zipped_file)
 
-def compression_result(model, name:str = "dummy", pruned = False, save=lambda f,a: (f,a)):
+def compression_result(model, name:str="dummy", pruned = False, save=lambda f,a: (f,a)):
     # calculate MB
 
     model_for_export = model
