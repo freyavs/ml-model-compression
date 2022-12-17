@@ -80,9 +80,12 @@ def kd_loop(data="mnist", teacher=None, epochs=1, prune_teacher=False, prune_stu
 
 def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a: (f,a), load_teacher=False):
     teacher, x_train, x_test, y_train, y_test = get_model_and_data('teacher', data)
+    
+    optimizer = 'SGD' #if resnet!!
+    #optimizer = keras.optimizers.Adam()
 
     teacher.compile(
-        optimizer=keras.optimizers.Adam(),
+        optimizer=optimizer,
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
     )

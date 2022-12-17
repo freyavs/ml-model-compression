@@ -23,21 +23,22 @@ def student_loss_graphic(data:str):
 
 def big_to_small(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
-    teacher, _ = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=False)
+    teacher, _ = kd_loop_teacher(data, epochs=3, save=save_accuracy, load_teacher=True)
+    compression_result(teacher, name='teacher')
 
     for s in cifar10_networks:
-        student, _ = kd_loop_student(data, student=s, epochs=13, teacher=teacher, save=save_accuracy)
+        student, _ = kd_loop_student(data, student=s, epochs=25, teacher=teacher, save=save_accuracy)
         compression_result(student, name='student', save=save_accuracy)
-        kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
+        kd_loop_scratch(data, scratch=s, epochs=20, save=save_accuracy)
 
 def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
         # TODO: voor grafiekjes is het interessanter om epochs hoger te zetten
-        teacher = kd_loop_teacher(data, epochs=1, save=save_accuracy, load_teacher=True)
-        student = kd_loop_student(data, epochs=25, teacher=teacher, save=save_accuracy)
-        scratch = kd_loop_scratch(data, epochs=25, save=save_accuracy)
+        teacher, _ = kd_loop_teacher(data, epochs=1, save=save_accuracy, load_teacher=False)
+        student, _ = kd_loop_student(data, epochs=25, teacher=teacher, save=save_accuracy)
+        scratch, _ = kd_loop_scratch(data, epochs=25, save=save_accuracy)
         compression_result(teacher,student, "teacher_file")
 
 def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
@@ -106,7 +107,6 @@ def main():
     normal('cifar10', *filenames('normal', 'cifar10')) 
     return
     normal('mnist', *filenames('normal', 'mnist')) 
-    normal('cifar100', *filenames('normal', 'cifar100')) 
 
     big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
 
