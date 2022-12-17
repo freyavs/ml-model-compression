@@ -13,7 +13,7 @@ def get_gzipped_model_size(file):
 
   return os.path.getsize(zipped_file)
 
-def compression_result(model, name:str, pruned = False):
+def compression_result(model, name:str = "dummy", pruned = False, save=lambda f,a: (f,a)):
     # calculate MB
 
     model_for_export = model
@@ -33,9 +33,9 @@ def compression_result(model, name:str, pruned = False):
 
     print("---- Compression result ----")
     print(f"Size of gzipped {name} model: {get_gzipped_model_size(keras_file)* 0.001}KB")
-    #save(f"{name}_size", (get_gzipped_model_size(baseline_keras_file)* 0.001, get_gzipped_model_size(optimized_keras_file)* 0.001))
+    save(f"{name}_size", (get_gzipped_model_size(keras_file)* 0.001))
 
     # calculate parameter difference
     print(f"Baseline model {name} parameters: {model.count_params()}")
-    #save(f"{name}_parameters", (model_before_optimization.count_params(), model_optimized.count_params()))
+    save(f"{name}_parameters", (model.count_params()))
     return
