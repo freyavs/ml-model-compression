@@ -1,6 +1,6 @@
 from kd_loop import *
 from networks import *
-from util import get_accuracy_saver
+from util import get_accuracy_saver, write_to_file
 from result_metrics import compression_result
 import tensorflow as tf
 from pathlib import Path
@@ -25,7 +25,7 @@ def student_loss_graphic(data:str):
 
 def big_to_small(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
-    teacher, _ = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=False)
+    teacher, _ = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=True)
     compression_result(teacher, name='teacher', save=save_accuracy)
 
     for s in cifar10_networks:
@@ -33,36 +33,44 @@ def big_to_small(data:str , teacher_file: str, student_file: str, scratch_file: 
         compression_result(student, name='student', save=save_accuracy)
         kd_loop_scratch(data, scratch=s, epochs=13, save=save_accuracy)
 
+def good_teacher_bad_teacher(data:str):
+    teacher, history = kd_loop_teacher(data, epochs=20, load_teacher=False)
+
+    s = get_student_small_0_cifar10()
+    student, history = kd_loop_student(data, student=s, epochs=35, teacher=teacher)
+    df = pd.DataFrame(history.history)
+    write_to_file('accs', str(list(df['val_sparse_categorical_accuracy'])))
+
 def normal(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
         # TODO: voor grafiekjes is het interessanter om epochs hoger te zetten
-        teacher = kd_loop_teacher(data, epochs=1, save=save_accuracy, load_teacher=True)
-        student = kd_loop_student(data, epochs=25, teacher=teacher, save=save_accuracy)
-        scratch = kd_loop_scratch(data, epochs=25, save=save_accuracy)
-        compression_result(teacher,student, "teacher_file")
+        teacher, _ = kd_loop_teacher(data, epochs=25, save=save_accuracy, load_teacher=True)
+        student, _ = kd_loop_student(data, epochs=17, teacher=teacher, save=save_accuracy)
+        # scratch, _ = kd_loop_scratch(data, epochs=25, save=save_accuracy)
+        # compression_result(teacher, "teacher_file")
 
 def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save=save_accuracy)
-        kd_loop_student(data, epochs=3, teacher=teacher, save=save_accuracy)
+        teacher, _ = kd_loop_teacher(data, epochs=20, apply_pruning=True, save=save_accuracy, load_teacher=True)
+        kd_loop_student(data, epochs=15, teacher=teacher, save=save_accuracy)
 
 def student_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
-    teacher = kd_loop_teacher(data, epochs=5, save=save_accuracy)
+    teacher, _ = kd_loop_teacher(data, epochs=20, save=save_accuracy, load_teacher=True)
     for _ in range(1):
-        kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save=save_accuracy)
+        kd_loop_student(data, epochs=15, teacher=teacher, apply_pruning=True, save=save_accuracy)
 
 def teacher_and_student_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher = kd_loop_teacher(data, epochs=5, apply_pruning=True, save=save_accuracy)
-        kd_loop_student(data, epochs=3, teacher=teacher, apply_pruning=True, save=save_accuracy)
+        teacher, _ = kd_loop_teacher(data, epochs=20, apply_pruning=True, save=save_accuracy, load_teacher=True)
+        kd_loop_student(data, epochs=15, teacher=teacher, apply_pruning=True, save=save_accuracy)
 
 def temperature_influence(teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
@@ -87,7 +95,8 @@ def alpha_influence(teacher_file: str, student_file: str, scratch_file: str):
         kd_loop_student(dataset, teacher, epochs=3, temperature=temperature, alpha=alpha, save=save_accuracy)
     
 def main():
-    # physical_devices = tf.config.list_physical_devices('GPU') 
+    physical_devices = tf.config.list_physical_devices('GPU') 
+    print(physical_devices)
     # tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
     OUTPUT_DIR = './experiment_results'
@@ -103,30 +112,22 @@ def main():
     # teacher_loss_graphic('cifar10')
     # student_loss_graphic('cifar10')
     big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
-    return
+    # good_teacher_bad_teacher('cifar10')
+    # normal('cifar10', *filenames('normal', 'cifar10')) 
 
     # normal('cifar100', *filenames('normal', 'cifar100')) 
-    normal('cifar10', *filenames('normal', 'cifar10')) 
-    return
-    normal('mnist', *filenames('normal', 'mnist')) 
-    normal('cifar100', *filenames('normal', 'cifar100')) 
+    # normal('cifar10', *filenames('normal', 'cifar10')) 
+    # normal('mnist', *filenames('normal', 'mnist')) 
 
-    big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
+    # big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
 
-    teacher_pruned('mnist', *filenames('teacher_pruned', 'mnist')) 
     teacher_pruned('cifar10', *filenames('teacher_pruned', 'cifar10')) 
 
-    student_pruned('mnist', *filenames('student_pruned', 'mnist')) 
     student_pruned('cifar10', *filenames('student_pruned', 'cifar10')) 
 
-    teacher_and_student_pruned('mnist', *filenames('normal', 'mnist')) 
     teacher_and_student_pruned('cifar10', *filenames('normal', 'cifar10')) 
-
-    temperature_influence(*filenames('temperature_influence'))
-    alpha_influence(*filenames('alpha_influence'))
+    # temperature_influence(*filenames('temperature_influence'))
+    # alpha_influence(*filenames('alpha_influence'))
 
 if __name__ == '__main__':
     main()
-    
-    # experiment_1('teacher_file1.txt', 'student_file1.txt', 'scratch_file1.txt')
-    # experiment_2('teacher_file2.txt', 'student_file2.txt', 'scratch_file2.txt')

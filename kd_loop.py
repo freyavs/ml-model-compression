@@ -62,7 +62,7 @@ def get_model_and_data(model, data):
     elif x == ('cifar100', 'teacher'):
         model = get_teacher_cifar100()
     elif x == ('cifar10', 'student') or x == ('cifar10', 'scratch'):
-        model = get_student_small_1_cifar10()
+        model = get_student_small_0_cifar10()
     elif x == ('cifar100', 'student') or x == ('cifar100', 'scratch'):
         model = get_student_small_1_cifar10()
     else:
@@ -80,9 +80,12 @@ def kd_loop(data="mnist", teacher=None, epochs=1, prune_teacher=False, prune_stu
 
 def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a: (f,a), load_teacher=False):
     teacher, x_train, x_test, y_train, y_test = get_model_and_data('teacher', data)
+    
+    # optimizer = 'SGD' #if resnet!!
+    optimizer = keras.optimizers.Adam()
 
     teacher.compile(
-        optimizer=keras.optimizers.Adam(),
+        optimizer=optimizer,
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[keras.metrics.SparseCategoricalAccuracy()],
     )
@@ -102,8 +105,9 @@ def kd_loop_teacher(data="mnist", epochs=1, apply_pruning=False, save=lambda f,a
     if apply_pruning:
         print("\n--- PRUNING & RE-EVALUATING TEACHER ---\n")
         new_teacher = keras.models.clone_model(teacher)
-        new_teacher = prune(new_teacher, x_train, y_train, x_test, y_test, epochs=epochs)
-        compression_result(teacher, new_teacher, 'teacher', save)
+        new_teacher = prune(new_teacher, x_train, y_train, x_test, y_test, epochs=20)
+        compression_result(teacher, 'teacher', True, save)
+        compression_result(new_teacher, 'teacher', True, save)
         teacher = new_teacher
     
     return teacher, history
@@ -140,8 +144,9 @@ def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pr
     if apply_pruning:
         print("\n--- PRUNING & RE-EVALUATING STUDENT ---\n")
         new_student = keras.models.clone_model(student)
-        new_student = prune(new_student, x_train, y_train, x_test, y_test, epochs=epochs)
-        compression_result(student, new_student, 'student', save)
+        new_student = prune(new_student, x_train, y_train, x_test, y_test, epochs=15)
+        compression_result(student, 'student', True, save)
+        compression_result(new_student, 'student', True, save)
         student = new_student
 
     return student, history

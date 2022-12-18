@@ -4,7 +4,7 @@ import tensorflow_model_optimization as tfmot
 import tempfile
 
 # https://www.tensorflow.org/model_optimization/guide/pruning/pruning_with_keras
-def prune(model, x_train, y_train, x_test, y_test, prune_epochs=2, epochs=3, batch_size=128, validation_split=0.1):
+def prune(model, x_train, y_train, x_test, y_test, prune_epochs=10, epochs=3, batch_size=128, validation_split=0.1):
     prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
 
     # Compute end step to finish pruning after 2 epochs.
@@ -13,8 +13,8 @@ def prune(model, x_train, y_train, x_test, y_test, prune_epochs=2, epochs=3, bat
 
     # Define model for pruning.
     pruning_params = {
-        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(initial_sparsity=0.50,
-                                                                final_sparsity=0.80,
+        'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(initial_sparsity=0.20,
+                                                                final_sparsity=0.50,
                                                                 begin_step=0,
                                                                 end_step=end_step)
     }
@@ -28,7 +28,6 @@ def prune(model, x_train, y_train, x_test, y_test, prune_epochs=2, epochs=3, bat
                 metrics=['accuracy']
     )
 
-    model_for_pruning.summary()
     logdir = tempfile.mkdtemp()
 
     callbacks = [

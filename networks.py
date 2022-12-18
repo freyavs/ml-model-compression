@@ -8,9 +8,69 @@ from tensorflow.keras import layers
 
 IMAGE_DIR = "images"
 
+def get_resnet152(output = 10):
+    inputs = tf.keras.layers.Input(shape=(32,32,3))
+    resize = tf.keras.layers.UpSampling2D(size=(7,7))(inputs)
+
+    resnet_feature_extractor = tf.keras.applications.resnet_v2.ResNet152V2(input_shape=(224, 224, 3),
+                                               include_top=False,
+                                               weights='imagenet')(resize)
+    x = tf.keras.layers.GlobalAveragePooling2D()(resnet_feature_extractor)
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(1024, activation="relu")(x)
+    x = tf.keras.layers.Dense(512, activation="relu")(x)
+    x = tf.keras.layers.Dense(output, activation=None, name="classification")(x)
+    classification_output = x
+
+    model = tf.keras.Model(inputs=inputs, outputs = classification_output)
+    return model
+
+def get_resnet50(output = 10):
+    inputs = tf.keras.layers.Input(shape=(32,32,3))
+    resize = tf.keras.layers.UpSampling2D(size=(7,7))(inputs)
+
+    resnet_feature_extractor = tf.keras.applications.resnet_v2.ResNet50V2(input_shape=(224, 224, 3),
+                                               include_top=False,
+                                               weights='imagenet')(resize)
+    x = tf.keras.layers.GlobalAveragePooling2D()(resnet_feature_extractor)
+    x = tf.keras.layers.Flatten()(x)
+    x = tf.keras.layers.Dense(1024, activation="relu")(x)
+    x = tf.keras.layers.Dense(512, activation="relu")(x)
+    x = tf.keras.layers.Dense(output, activation=None, name="classification")(x)
+    classification_output = x
+
+    model = tf.keras.Model(inputs=inputs, outputs = classification_output)
+    return model
+
+def get_teacher_cifar100_2(summarize = False):
+    teacher = get_resnet152(output=100)
+
+    if summarize:
+        plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
+        teacher.summary()
+    
+    return teacher
+
+def get_student_smaller_cifar100_2(summarize = False):
+    teacher = get_resnet152(output=100)
+
+    if summarize:
+        plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
+        teacher.summary()
+    
+    return teacher
+
+def get_teacher_cifar100(summarize = False):
+    teacher = get_resnet50(output=100)
+
+    if summarize:
+        plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
+        teacher.summary()
+    
+    return teacher
 
 # 63% accuracy
-def get_teacher_cifar100(summarize = False):
+def get_student_smaller_cifar100(summarize = False):
     model = tf.keras.Sequential()
     model.add(layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(32, 32, 3)))
     model.add(layers.BatchNormalization())
@@ -35,41 +95,23 @@ def get_teacher_cifar100(summarize = False):
     model.add(layers.BatchNormalization())
     model.add(layers.Dropout(0.5))
     model.add(layers.Dense(100, activation='softmax'))
-    teacher = model
-    
-    teacher = model 
-    if summarize:
-        plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
-        teacher.summary()
-
-    return teacher
-
-# TODO: zelfde model als hierboven gebruiken maar kleiner? Of eventueel get_student_smaller_cifar10 gebruiken (heeft minder lagen)
-# vooral letten op dat er geen overfitting is na nog maar 5 epochs ofzo
-def get_student_smaller_cifar100(summarize = False):
-    model = tf.keras.Sequential()
-    model.add(layers.Conv2D(filters = 8, kernel_size=(2, 2), input_shape=(32, 32, 3), activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(layers.BatchNormalization())
-    model.add(layers.Conv2D(filters = 16, kernel_size=(2, 2), activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(layers.BatchNormalization())
-    model.add(layers.Conv2D(filters = 32, kernel_size=(2, 2),activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    model.add(layers.BatchNormalization())
-    model.add(layers.Flatten())
-    model.add(layers.Dense(256, activation='relu'))
-    model.add(layers.Dropout(0.2))
-    model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dropout(0.2))
-    model.add(layers.Dense(100, activation="softmax"))
-    
 
     student = model
+
     if summarize:
         plot_model(student, to_file=f'{IMAGE_DIR}/small_network_cifar.png', show_layer_names=False, show_shapes=True)
         student.summary()
+
     return student
+
+def get_teacher_cifar10_(summarize = False):
+    teacher = get_resnet50(output=10)
+
+    if summarize:
+        plot_model(teacher, to_file=f'{IMAGE_DIR}/teacher_network_cifar.png', show_layer_names=False, show_shapes=True)
+        teacher.summary()
+    
+    return teacher
 
 # 85.2% accuracy teacher network after 20 epochs
 def get_teacher_cifar10(summarize = False):
