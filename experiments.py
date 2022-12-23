@@ -55,8 +55,9 @@ def teacher_pruned(data:str , teacher_file: str, student_file: str, scratch_file
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
 
     for _ in range(1):
-        teacher, _ = kd_loop_teacher(data, epochs=20, apply_pruning=True, save=save_accuracy, load_teacher=True)
-        kd_loop_student(data, epochs=15, teacher=teacher, save=save_accuracy)
+        # teacher, _ = kd_loop_teacher(data, epochs=20, apply_pruning=True, save=save_accuracy, load_teacher=True)
+        # kd_loop_student(data, epochs=15, teacher=teacher, save=save_accuracy)
+        kd_loop_scratch(data, epochs=15)
 
 def student_pruned(data:str , teacher_file: str, student_file: str, scratch_file: str):
     save_accuracy = get_accuracy_saver(teacher_file, student_file, scratch_file)
@@ -111,7 +112,7 @@ def main():
 
     # teacher_loss_graphic('cifar10')
     # student_loss_graphic('cifar10')
-    big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
+    # big_to_small('cifar10', *filenames('big_to_small', 'cifar10')) 
     # good_teacher_bad_teacher('cifar10')
     # normal('cifar10', *filenames('normal', 'cifar10')) 
 

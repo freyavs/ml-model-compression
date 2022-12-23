@@ -14,7 +14,7 @@ def prune(model, x_train, y_train, x_test, y_test, prune_epochs=10, epochs=3, ba
     # Define model for pruning.
     pruning_params = {
         'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(initial_sparsity=0.20,
-                                                                final_sparsity=0.50,
+                                                                final_sparsity=0.75,
                                                                 begin_step=0,
                                                                 end_step=end_step)
     }

@@ -147,6 +147,7 @@ def get_teacher_cifar10(summarize = False):
     return teacher
 
 # teacher= 85, scratch = 73, student = 73 (maar groter dan bovenste)
+# teacher= 85, scratch = 73, student = 73 (maar groter dan bovenste)
 def get_student_small_0_cifar10(summarize = False):
     model = tf.keras.Sequential()
     model.add(layers.Conv2D(8, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(32, 32, 3)))

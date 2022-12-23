@@ -141,17 +141,17 @@ def kd_loop_student(data="mnist", teacher=None, student=None, epochs=1, apply_pr
 
     distiller.student.save(f'output/student-{data}')
 
+    compression_result(student, 'student', True, save)
     if apply_pruning:
         print("\n--- PRUNING & RE-EVALUATING STUDENT ---\n")
         new_student = keras.models.clone_model(student)
         new_student = prune(new_student, x_train, y_train, x_test, y_test, epochs=15)
-        compression_result(student, 'student', True, save)
         compression_result(new_student, 'student', True, save)
         student = new_student
 
     return student, history
 
-def kd_loop_scratch(data="mnist", scratch=None, epochs=1, save=lambda f,a: (f,a)):
+def kd_loop_scratch(data="mnist", scratch=None, epochs=1, apply_pruning=True, save=lambda f,a: (f,a)):
     if not scratch:
         scratch, x_train, x_test, y_train, y_test = get_model_and_data('student', data)
     else:
@@ -172,5 +172,13 @@ def kd_loop_scratch(data="mnist", scratch=None, epochs=1, save=lambda f,a: (f,a)
     print('Scratch test accuracy:', scratch_accuracy)
 
     scratch.save(f'output/scratch-{data}')
+
+    compression_result(scratch, 'scratch', True, save)
+    if apply_pruning:
+        print("\n--- PRUNING & RE-EVALUATING SCRATCH ---\n")
+        new_scratch = keras.models.clone_model(scratch)
+        new_scratch = prune(new_scratch, x_train, y_train, x_test, y_test, epochs=15)
+        compression_result(new_scratch, 'scratch', True, save)
+        scratch = new_scratch
 
     return scratch
